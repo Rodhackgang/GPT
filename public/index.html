@@ -628,7 +628,7 @@
             <div class="card-header">
                 <h2><i class="fas fa-list"></i> Liste des Utilisateurs</h2>
                 <div style="display: flex; gap: 10px;">
-                    <button class="btn btn-primary btn-sm" onclick="copyAllPhones()">
+                    <button class="btn btn-primary btn-sm" onclick="copyAllPhones()" type="button">
                         <i class="fas fa-copy"></i> Copier les téléphones
                     </button>
                     <button class="btn btn-success btn-sm" onclick="loadDocuments()">
@@ -999,13 +999,46 @@
                     const phones = result.data.map(user => user.telephone);
                     const phonesText = phones.join('\n'); // Un numéro par ligne
 
-                    // Copier dans le presse-papier
-                    await navigator.clipboard.writeText(phonesText);
+                    // Méthode 1: API Clipboard moderne (si disponible)
+                    if (navigator.clipboard && navigator.clipboard.writeText) {
+                        try {
+                            await navigator.clipboard.writeText(phonesText);
+                            showMessage(
+                                `<i class="fas fa-check-circle"></i> ${phones.length} numéro(s) de téléphone copié(s) dans le presse-papier!`, 
+                                'success'
+                            );
+                            return;
+                        } catch (clipboardError) {
+                            console.log('API Clipboard échouée, utilisation de la méthode de secours');
+                        }
+                    }
+
+                    // Méthode 2: Méthode de secours avec textarea
+                    const textarea = document.createElement('textarea');
+                    textarea.value = phonesText;
+                    textarea.style.position = 'fixed';
+                    textarea.style.left = '-999999px';
+                    textarea.style.top = '-999999px';
+                    document.body.appendChild(textarea);
+                    textarea.focus();
+                    textarea.select();
                     
-                    showMessage(
-                        `<i class="fas fa-check-circle"></i> ${phones.length} numéro(s) de téléphone copié(s) dans le presse-papier!`, 
-                        'success'
-                    );
+                    try {
+                        const successful = document.execCommand('copy');
+                        document.body.removeChild(textarea);
+                        
+                        if (successful) {
+                            showMessage(
+                                `<i class="fas fa-check-circle"></i> ${phones.length} numéro(s) de téléphone copié(s) dans le presse-papier!`, 
+                                'success'
+                            );
+                        } else {
+                            throw new Error('La commande de copie a échoué');
+                        }
+                    } catch (copyError) {
+                        document.body.removeChild(textarea);
+                        throw copyError;
+                    }
                 } else {
                     showMessage(
                         '<i class="fas fa-exclamation-circle"></i> Aucun utilisateur trouvé', 
@@ -1013,8 +1046,9 @@
                     );
                 }
             } catch (error) {
+                console.error('Erreur lors de la copie:', error);
                 showMessage(
-                    '<i class="fas fa-exclamation-circle"></i> Erreur lors de la copie: ' + error.message, 
+                    '<i class="fas fa-exclamation-circle"></i> Erreur lors de la copie: ' + error.message + '. Vérifiez la console pour plus de détails.', 
                     'error'
                 );
             }
