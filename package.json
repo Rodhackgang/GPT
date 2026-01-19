@@ -1,0 +1,23 @@
+{
+  "name": "mongodb-service",
+  "version": "1.0.0",
+  "description": "Service MongoDB avec opérations CRUD",
+  "main": "test.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js",
+    "test": "node test.js"
+  },
+  "keywords": [
+    "mongodb",
+    "mongoose",
+    "crud"
+  ],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "mongoose": "^8.0.0",
+    "dotenv": "^16.3.1",
+    "express": "^4.18.2"
+  }
+}
